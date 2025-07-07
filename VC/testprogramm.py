@@ -1,6 +1,7 @@
 import bit2
+import binner
 
-print(bit2.intToBytes2(1024))
-print(bit2.bytes2toint(bit2.intToBytes2(1024)))
+with open('tfss/ru.tfs', 'rb') as file:
+    print(file.read())
 
 while True: pass
