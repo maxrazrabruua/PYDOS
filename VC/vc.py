@@ -6,6 +6,7 @@ import time
 import bit2
 import os
 import binner as ard
+import time
 print("Создание функциий...")
 def h():
     print("Помощь:")
@@ -33,6 +34,8 @@ def h():
     print("20. Читать файл с виртуального диска отправляя его данные в указанный начало:конец")
     print("21. Удалить файл с виртуального диска")
     print("22. Напрямую прочитать диск как текст в кодировке ARD")
+    print("23. Начать ввод текста в кодировке ARD(многострочный режим) аналогичный 13-ой команде")
+    print("24. Запуск пайтон программ из ОЗУ в заданном начале:конце")
 print("Подсчёт памяти...")
 l = 0
 s = time.time()
@@ -220,7 +223,7 @@ while True:
                     s = time.time()
                     a = list(ard.Ard(text).encode())
                     for key, v in zip(range(len(a)), a):
-                        print(f'Сохранение байта {key + j}: {v}', end='\r')
+                        print(f'Сохранение байта {key + j}: {v}{' ' * 32}', end='\r')
                         mem[key + j] = v
                     print(f"\nДанные сохранены в ОЗУ за {time.time() - s} секунд!")
                     print('Сохранение завершено!')
@@ -336,6 +339,7 @@ while True:
                     print("Виртуальный диск пуст")
                 print(f"Файлов: {len(sl.keys())}")
                 print(f"Вес их даннных в байтах: {len(bytes().join([x for x in sl.values()]))}")
+                print(f"Вес самого виртуального диска в байтах: {len(content)}")
             except IndexError:
                 print("Этот диск недоступный, выберите другой диск")
         elif i == "20":
@@ -436,6 +440,115 @@ while True:
                     print(repr(''.join([ard.localChr(x) for x in file.read()])))
             except IndexError:
                 print("Этот диск недоступный, выберите другой диск")
+        elif i == "23":
+            os.system('color 70')
+            print("Очистка экрана...")
+            t = []
+            startback = []
+            endback = []
+            tab = ''
+            while True:
+                os.system("cls")
+                print("\\c0 - Выход с редактора без сохранения")
+                print("\\c1 - Выход с редактора с сохранением текста в ОЗУ")
+                print("\\c2 - Очистить")
+                print("\\c3:X - Очистить определённое количество строк снизу")
+                print("\\c4:X - Очистить определённое количество строк сверха")
+                print("\\c5:X - Перейти на нужную строчку(может быть для исправления ошибок)")
+                print("\\c6 - вернуться на свою строчку")
+                print("\\c7:X - табулировать в некоторое количество раз")
+                print('\n'.join(t), end=('' if len(t) == 0 else '\n'))
+                string = input(tab + "")
+                if string == "\\c0":
+                    os.system("cls")
+                    os.system('color 0F')
+                    break
+                elif string == "\\c1":
+                    os.system("cls")
+                    os.system('color 0F')
+                    j = bit2.bytes2toint(bytes([mem[1]] + [mem[2]]))
+                    k = bit2.bytes2toint(bytes([mem[3]] + [mem[4]]))
+                    text = '\n'.join(t)
+                    if k - j == 0:
+                        if len(text) == 1:
+                            mem[j] = list(ard.Ard(text).encode())[0]
+                            print("Сохранено 1 байт")
+                        else:
+                            print("Некорректная длина")
+                    else:
+                        if len(text) == k - j + 1:
+                            print("Сохраняю в ОЗУ...")
+                            s = time.time()
+                            a = list(ard.Ard(text).encode())
+                            for key, v in zip(range(len(a)), a):
+                                print(f'Сохранение байта {key + j}: {v}{' ' * 32}', end='\r')
+                                mem[key + j] = v
+                            print(f"\nДанные сохранены в ОЗУ за {time.time() - s} секунд!")
+                            print('Сохранение завершено!')
+                            print(f'Сохранено {len(a)} байт(-ов)')
+                        else:
+                            print(f"Некорректная длина(Длина: {len(text)}, А длина для записи {k - j + 1})")
+                    break
+                elif string == "\\c2":
+                    t = []
+                elif string.startswith("\\c3"):
+                    try:
+                        t = t[:-int(string[4:])]
+                    except:
+                        pass
+                elif string.startswith("\\c4"):
+                    try:
+                        t = t[int(string[4:]):]
+                    except:
+                        pass
+                elif string.startswith("\\c5"):
+                    try:
+                        a = int(string[4:])
+                        b = False
+                        for x, y in zip(range(len(t)), t):
+                            if not b:
+                                if x == a:
+                                    b = True
+                                    continue
+                                startback.append(y)
+                            else:
+                                endback.append(y)
+                        t = startback
+                    except:
+                        pass
+                elif string == "\\c6":
+                    t += endback
+                elif string.startswith("\\c7"):
+                    try:
+                        tab = '    ' * int(string[4:])
+                    except:
+                        pass
+                else:
+                    t.append(tab + string)
+                    tab = ''
+        elif i == "24":
+            print("Настройка...")
+            j = bit2.bytes2toint(bytes([mem[1]] + [mem[2]]))
+            k = bit2.bytes2toint(bytes([mem[3]] + [mem[4]]))
+            s = time.time()
+            a = []
+            while True:
+                try:
+                    print(str(j) + "\r", end='')
+                    a.append(mem[j])
+                    j += 1
+                    if j == k + 1:
+                        raise IndexError('?')
+                except IndexError:
+                    print(str(j - 1) + " байт" + "\r", end='')
+                    print("\nЗакончено, память готова к работе")
+                    break
+            print("Прошло:", time.time() - s, "секунд")
+            print("Переобразую в ARD...")
+            b = ''.join([ard.localChr(x) for x in a])
+            print("Выполнение кода пайтон...(одна секунда ожидания)")
+            time.sleep(1.0)
+            exec(b)
         else:
             print("Неверный ввод")
     except Exception as e:
